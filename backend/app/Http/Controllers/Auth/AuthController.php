@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\BaseApiController;
-use App\Http\Requests\API\{LoginRequest,RegisterRequest};
+use App\Http\Requests\Auth\{ForgotPasswordRequest, LoginRequest, RegisterRequest, ResetPasswordRequest};
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Hash};
+use Illuminate\Support\Facades\{Auth, Hash, Password};
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
+use Str;
 
 class AuthController extends BaseApiController
 {
@@ -33,7 +35,7 @@ class AuthController extends BaseApiController
         ], 'User registered successfully', 201);
     }
 
-     /**
+    /**
      * Login user and create token
      *
      * @param LoginRequest $request
@@ -55,7 +57,7 @@ class AuthController extends BaseApiController
         }
     }
 
-     /**
+    /**
      * Logout user (Revoke the token)
      *
      * @param Request $request
@@ -77,5 +79,49 @@ class AuthController extends BaseApiController
     public function profile(Request $request)
     {
         return $this->successResponse(new UserResource($request->user()));
+    }
+
+    /**
+     * Send a reset link to the given user.
+     *
+     * @param  ForgotPasswordRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $status = Password::sendResetLink($request->only('email'));
+
+        if ($status === PASSWORD::RESET_LINK_SENT) {
+            return $this->successResponse(null, 'Password reset link sent to your email');
+        }
+
+        return $this->errorResponse(trans($status), null, 400);
+    }
+
+    /**
+     * Reset the given user's password.
+     *
+     * @param  ResetPasswordRequest  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resetPassword(ResetPasswordRequest $request) {
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+
+                $user->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if($status === Password::PASSWORD_RESET) {
+            return $this->successResponse(null, 'Password has been successfully reset.');
+        }
+
+        return $this->errorResponse(trans($status), null, 400);
     }
 }

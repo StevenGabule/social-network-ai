@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used by the password reset notification to create the URL for
+    | the frontend application's password reset page. You should set this to
+    | the root URL of your frontend application.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', env('APP_URL')),
 ];
