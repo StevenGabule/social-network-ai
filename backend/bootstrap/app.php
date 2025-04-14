@@ -7,10 +7,8 @@ use Illuminate\Foundation\Configuration\{Exceptions, Middleware};
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Laravel\Passport\Exceptions\AuthenticationException as ExceptionsAuthenticationException;
-use League\OAuth2\Server\Exception\OAuthServerException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,13 +23,55 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (AuthenticationException $e, Request $request) {
+        $exceptions->renderable(function (Throwable $exception, Request $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
+
+                \Log::info('Exception caught', [get_class($exception)]);
+
+                $statusCode = 500;
+                $message = 'Internal server error';
+                $errors = null;
+
+                // Handle different exception types
+                if ($exception instanceof AuthenticationException) {
+                    $statusCode = 401;
+                    $message = 'Unauthenticated';
+                } elseif ($exception instanceof ValidationException) {
+                    $statusCode = 422;
+                    $message = 'Validation error';
+                    $errors = $exception->validator->errors()->toArray();
+                } elseif ($exception instanceof ModelNotFoundException) {
+                    $statusCode = 404;
+                    $model = strtolower(class_basename($exception->getModel()));
+                    $message = "Unable to find {$model} with the given identifier";
+                } elseif ($exception instanceof NotFoundHttpException) {
+                    $statusCode = 404;
+                    $message = 'The requested endpoint does not exist';
+                } elseif ($exception instanceof MethodNotAllowedHttpException) {
+                    $statusCode = 405;
+                    $message = 'The method specified in the request is not allowed';
+                }
+
+                // Create a standardized response
                 $response = [
                     'success' => false,
-                    'message' => 'Unauthenticated'
+                    'message' => $message
                 ];
-                return response()->json($response, 401);
+
+                // Add errors if available
+                if (!empty($errors)) {
+                    $response['errors'] = $errors;
+                }
+
+                // Add debug information in development environment
+                // if (config('app.debug')) {
+                //     $response['debug'] = [
+                //         'exception' => get_class($exception),
+                //         'trace' => $exception->getTrace()
+                //     ];
+                // }
+
+                return response()->json($response, $statusCode);
             }
         });
     })->create();
