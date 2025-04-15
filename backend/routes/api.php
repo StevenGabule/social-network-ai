@@ -14,6 +14,10 @@ Route::prefix('auth')->group(function() {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('profile', [AuthController::class, 'profile']);
     });
+
+    // Social Login Routes
+    Route::get('{provider}/redirect', [AuthController::class, 'redirectToProvider']);
+    Route::get('{provider}/callback', [AuthController::class, 'handleProviderCallback']);
 });
 
 Route::fallback(function () {
