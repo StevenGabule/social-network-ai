@@ -1,10 +1,12 @@
 import React, { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSocialAuth } from '@/hooks/use-social-auth';
+import SocialAuthButton from '@/components/social-auth-button';
 
 export default function Register(): React.ReactElement {
 	const [name, setName] = useState('');
@@ -12,6 +14,7 @@ export default function Register(): React.ReactElement {
 	const [password, setPassword] = useState('');
 	const [passwordConfirmation, setPasswordConfirmation] = useState('');
 	const { register, isRegistering, registerError } = useAuth();
+	const {initiateLogin, isLoading: isSocialLoading} = useSocialAuth();
 
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
@@ -40,6 +43,34 @@ export default function Register(): React.ReactElement {
 								{registerError.response?.data?.message || 'An error occurred during registration'}
 							</div>
 						)}
+
+						 {/* Social Login Buttons */}
+						 <div className="space-y-3 mb-4">
+              <SocialAuthButton
+                provider="google" 
+                onClick={() => initiateLogin('google')}
+                disabled={isSocialLoading || isRegistering}
+              />
+							
+              <SocialAuthButton 
+                provider="facebook" 
+                onClick={() => initiateLogin('facebook')}
+                disabled={isSocialLoading || isRegistering}
+              />
+
+              <SocialAuthButton 
+                provider="twitter" 
+                onClick={() => initiateLogin('twitter')}
+                disabled={isSocialLoading || isRegistering}
+              />
+            </div>
+            
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="flex-shrink mx-4 text-sm text-gray-400">OR</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
 						<div className="space-y-2">
 							<Label htmlFor="name">Name</Label>
 							<Input

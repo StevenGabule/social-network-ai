@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useToastStore } from './hooks/useToastStore';
+import { useToastStore } from './hooks/use-toast-store';
 import Toast, { ToastContainer } from './components/toast';
 
 interface ToastProviderProps {
@@ -8,7 +8,6 @@ interface ToastProviderProps {
 
 const ToastProvider = ({ children }: ToastProviderProps) => {
   const { toasts, removeToast } = useToastStore();
-
   return (
     <>
       {children}

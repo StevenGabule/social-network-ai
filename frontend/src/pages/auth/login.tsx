@@ -1,19 +1,22 @@
+import SocialAuthButton from '@/components/social-auth-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
+import { useSocialAuth } from '@/hooks/use-social-auth';
 import React, { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom';
 
 export default function Login(): React.ReactElement {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('')
-	const {login, isLoggingIn, loginError} = useAuth();
+	const { login, isLoggingIn, loginError } = useAuth();
+	const { initiateLogin, isLoading: isSocialLoading } = useSocialAuth();
 
 	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault();
-		login({email, password});
+		login({ email, password });
 	}
 
 	return (
@@ -24,53 +27,79 @@ export default function Login(): React.ReactElement {
 					<CardDescription>Enter your email and password to sign in.</CardDescription>
 				</CardHeader>
 				<CardContent>
+
 					<form onSubmit={handleSubmit} className='space-y-4'>
 						{loginError && (
-								<div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
-									{/* @ts-expect-error some */}
-									{loginError.response?.data?.message || 'An error occurred during login'}
-								</div>
-							)}
-							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
-								<Input 
-									id="email"
-									type="email"
-									placeholder="name@example.com"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									required
-								/>
+							<div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
+								{/* @ts-expect-error some */}
+								{loginError.response?.data?.message || 'An error occurred during login'}
 							</div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-slate-500 hover:text-slate-900">
-                  Forgot Password?
-                </Link>
-              </div>
-              <Input 
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoggingIn}>
-              {isLoggingIn ? 'Signing in...' : 'Sign in'}
-            </Button>
+						)}
+
+						<div className="space-y-3 mb-4">
+							<SocialAuthButton
+								provider='google'
+								onClick={() => initiateLogin('google')}
+								disabled={isSocialLoading || isLoggingIn}
+							/>
+							<SocialAuthButton
+								provider='facebook'
+								onClick={() => initiateLogin('facebook')}
+								disabled={isSocialLoading || isLoggingIn}
+							/>
+							<SocialAuthButton
+								provider='twitter'
+								onClick={() => initiateLogin('twitter')}
+								disabled={isSocialLoading || isLoggingIn}
+							/>
+						</div>
+
+						<div className="relative flex items-center py-2">
+							<div className="flex-grow border-t border-gray-300"></div>
+							<span className="flex-shrink mx-4 text-sm text-gray-400">OR</span>
+							<div className="flex-grow border-t border-gray-300"></div>
+						</div>
+
+						<div className="space-y-2">
+							<Label htmlFor="email">Email</Label>
+							<Input
+								id="email"
+								type="email"
+								placeholder="name@example.com"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								required
+							/>
+						</div>
+						<div className="space-y-2">
+							<div className="flex items-center justify-between">
+								<Label htmlFor="password">Password</Label>
+								<Link to="/forgot-password" className="text-sm text-slate-500 hover:text-slate-900">
+									Forgot Password?
+								</Link>
+							</div>
+							<Input
+								id="password"
+								type="password"
+								placeholder="••••••••"
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								required
+							/>
+						</div>
+						<Button type="submit" className="w-full" disabled={isLoggingIn}>
+							{isLoggingIn ? 'Signing in...' : 'Sign in'}
+						</Button>
 					</form>
 				</CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-slate-500">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-slate-900 hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </CardFooter>
+				<CardFooter className="flex justify-center">
+					<p className="text-sm text-slate-500">
+						Don't have an account?{' '}
+						<Link to="/register" className="text-slate-900 hover:underline">
+							Sign up
+						</Link>
+					</p>
+				</CardFooter>
 			</Card>
 		</div>
 	)

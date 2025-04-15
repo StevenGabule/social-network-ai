@@ -90,6 +90,3 @@ export const ToastContainer = ({ children }: { children: ReactNode }) => {
     </div>
   );
 };
-
-// Toast hook for global state management would be created separately with Zustand
-// This would be part of a more complete toast system

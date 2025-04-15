@@ -1,17 +1,16 @@
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
+import { useAuthStore } from '@/store/auth-store';
 import React from 'react'
 import { Link } from 'react-router-dom';
 
 export default function Dashboard(): React.ReactElement {
-	const { logout, profile, isProfileLoading } = useAuth();
-
+	const { logout } = useAuth();
+	const {user} = useAuthStore();
 	const handleLogout = () => {
 		logout();
 	};
 
-	const {data: profileInfo} = profile;
-	
 	return (
 		<div className="min-h-screen bg-slate-50">
 			<header className="bg-white shadow">
@@ -32,18 +31,14 @@ export default function Dashboard(): React.ReactElement {
 				<div className="bg-white shadow rounded-lg p-6">
 					<h2 className="text-lg font-medium text-slate-900 mb-4">Welcome to your Dashboard</h2>
 
-					{isProfileLoading ? (
-						<p>Loading profile...</p>
-					) : (
-						<div>
-							<p className="text-sm text-slate-500">
-								You are logged in as <span className="font-medium text-slate-700">{profileInfo.name}</span>
-							</p>
-							<p className="text-sm text-slate-500 mt-1">
-								Email: <span className="font-medium text-slate-700">{profileInfo.email}</span>
-							</p>
-						</div>
-					)}
+					<div>
+						<p className="text-sm text-slate-500">
+							You are logged in as <span className="font-medium text-slate-700">{user?.name}</span>
+						</p>
+						<p className="text-sm text-slate-500 mt-1">
+							Email: <span className="font-medium text-slate-700">{user?.email}</span>
+						</p>
+					</div>
 
 					<div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 						{/* Dashboard content would go here */}
