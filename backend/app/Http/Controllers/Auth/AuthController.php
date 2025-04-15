@@ -135,9 +135,13 @@ class AuthController extends BaseApiController
             return response()->json(['error' => 'Invalid provider'], 400);
         }
 
-        return response()->json([
-            'url' => Socialite::driver($provider)->stateless()->redirect()->getTargetUrl()
-        ]);
+        if ($provider === 'twitter') {
+            return redirect(Socialite::driver($provider));
+        } else {
+            return response()->json([
+                'url' => Socialite::driver($provider)->stateless()->redirect()->getTargetUrl()
+            ]);
+        }
     }
     public function handleProviderCallback($provider)
     {
@@ -148,9 +152,9 @@ class AuthController extends BaseApiController
                 return redirect(env('FRONTEND_URL') . '/login?error=invalid_provider');
             }
 
-            $socialUser = Socialite::driver($provider)->stateless->user();
+            $socialUser = Socialite::driver($provider)->stateless()->user();
 
-            $user = User::findOrCreate(
+            $user = User::firstOrCreate(
                 [
                     'provider' => $provider,
                     'provider_id' => $socialUser->getId()
@@ -164,7 +168,6 @@ class AuthController extends BaseApiController
             );
 
             $token = $user->createToken('AuthToken')->accessToken;
-
             return redirect(env('FRONTEND_URL') . '/social-callback?token=' . $token);
         } catch (\Exception $e) {
             return redirect(env('FRONTEND_URL') . '/login?error=' . $e->getMessage());
