@@ -135,14 +135,17 @@ class AuthController extends BaseApiController
             return response()->json(['error' => 'Invalid provider'], 400);
         }
 
-        if ($provider === 'twitter') {
-            return redirect(Socialite::driver($provider));
+        if ($provider == 'twitter') {
+            return response()->json([
+                'url' => Socialite::driver($provider)->redirect()->getTargetUrl()
+            ]);
         } else {
             return response()->json([
                 'url' => Socialite::driver($provider)->stateless()->redirect()->getTargetUrl()
             ]);
         }
     }
+
     public function handleProviderCallback($provider)
     {
         try {
